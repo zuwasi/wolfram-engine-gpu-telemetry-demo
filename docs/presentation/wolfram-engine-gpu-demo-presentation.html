@@ -68,21 +68,23 @@
     .brand-row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 28px; }
     .brand-img { max-height: 92px; max-width: min(360px, 42vw); object-fit: contain; background: rgba(255,255,255,.94); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); }
     .screenshot { width: 100%; border-radius: 22px; border: 1px solid var(--line); box-shadow: var(--shadow); display: block; }
-    .dashboard-wrap { position: relative; width: min(1120px, 100%); margin: 12px auto 0; }
+    .dashboard-layout { display: grid; grid-template-columns: minmax(190px, 230px) minmax(0, 1fr) minmax(190px, 230px); gap: 20px; align-items: center; margin-top: 12px; }
+    .dashboard-center { position: relative; }
     .dashboard-shot { width: 100%; display: block; border-radius: 18px; border: 1px solid rgba(255,255,255,.24); box-shadow: var(--shadow); }
-    .callout { position: absolute; z-index: 5; max-width: 230px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.24); background: rgba(15,23,42,.90); color: #f8fafc; font-size: clamp(11px, .95vw, 14px); line-height: 1.25; box-shadow: 0 14px 36px rgba(0,0,0,.34); backdrop-filter: blur(12px); }
+    .callout-stack { display: grid; gap: 14px; }
+    .callout { position: relative; z-index: 5; max-width: none; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.24); background: rgba(15,23,42,.90); color: #f8fafc; font-size: clamp(11px, .95vw, 14px); line-height: 1.25; box-shadow: 0 14px 36px rgba(0,0,0,.34); backdrop-filter: blur(12px); }
     .callout strong { display: block; color: #fff; font-size: clamp(12px, 1.05vw, 15px); margin-bottom: 3px; }
-    .callout::after { content: ""; position: absolute; height: 2px; background: linear-gradient(90deg, var(--cyan), transparent); transform-origin: left center; }
-    .callout.controls { left: 2%; top: -2%; }
-    .callout.controls::after { left: 100%; top: 55%; width: 220px; transform: rotate(10deg); }
-    .callout.table { left: 2%; top: 30%; }
-    .callout.table::after { left: 100%; top: 48%; width: 170px; transform: rotate(-8deg); }
-    .callout.kpis { right: 1%; top: 45%; }
-    .callout.kpis::after { right: 100%; top: 44%; width: 210px; transform-origin: right center; transform: rotate(176deg); background: linear-gradient(90deg, transparent, var(--amber)); }
-    .callout.report { left: 2%; bottom: 16%; }
-    .callout.report::after { left: 100%; top: 42%; width: 260px; transform: rotate(-10deg); }
-    .callout.log { right: 2%; bottom: -2%; }
-    .callout.log::after { right: 100%; top: 50%; width: 240px; transform-origin: right center; transform: rotate(186deg); background: linear-gradient(90deg, transparent, var(--green)); }
+    .callout::after { content: ""; position: absolute; top: 50%; height: 2px; width: 22px; background: linear-gradient(90deg, var(--cyan), var(--amber)); }
+    .callout::before { content: ""; position: absolute; top: calc(50% - 4px); width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .callout.left::after { left: 100%; }
+    .callout.left::before { left: calc(100% + 20px); border-left: 8px solid var(--amber); }
+    .callout.right::after { right: 100%; background: linear-gradient(90deg, var(--amber), var(--cyan)); }
+    .callout.right::before { right: calc(100% + 20px); border-right: 8px solid var(--amber); }
+    .callout.controls { transform: translateY(-6px); }
+    .callout.table { transform: translateY(2px); }
+    .callout.report { transform: translateY(10px); }
+    .callout.kpis { transform: translateY(32px); }
+    .callout.log { transform: translateY(56px); }
     .diagram { white-space: pre; overflow-x: auto; font-family: "Cascadia Mono", "Consolas", monospace; font-size: clamp(12px, 1.2vw, 17px); line-height: 1.25; color: #dbeafe; background: rgba(2,6,23,.72); border: 1px solid rgba(148,163,184,.28); border-radius: 20px; padding: 18px; }
     .formula { font-family: "Cascadia Mono", "Consolas", monospace; color: #e0f2fe; background: rgba(2,6,23,.65); border-left: 5px solid var(--cyan); padding: 14px 16px; border-radius: 12px; font-size: clamp(13px, 1.25vw, 18px); overflow-x: auto; }
     .metric { display: grid; grid-template-columns: 1.1fr .75fr .75fr 1.6fr; gap: 0; overflow: hidden; border-radius: 18px; border: 1px solid rgba(255,255,255,.14); }
@@ -115,8 +117,9 @@
       .nav { display: none; }
       .metric { grid-template-columns: 1fr; }
       .metric .head:nth-child(n+2) { display: none; }
-      .callout { position: static; max-width: none; margin: 8px 0; }
-      .callout::after { display: none; }
+      .dashboard-layout { grid-template-columns: 1fr; }
+      .callout { position: static; max-width: none; margin: 0; transform: none !important; }
+      .callout::after, .callout::before { display: none; }
     }
   </style>
 </head>
@@ -327,13 +330,19 @@
       <div class="slide-inner">
         <div class="kicker">Dashboard walkthrough</div>
         <h2>Qt dashboard components</h2>
-        <div class="dashboard-wrap">
-          <img class="dashboard-shot" src="assets/qt-dashboard.png" alt="Qt dashboard screenshot with Wolfram Engine calculation report" />
-          <div class="callout controls"><strong>1. Sampling controls</strong>Choose GPU, sample duration, Wolfram Engine vs DLL, then Start/Stop.</div>
-          <div class="callout table"><strong>2. Live telemetry grid</strong>Raw sample rows: temperature, fan, power, utilization, memory and throttle flags.</div>
-          <div class="callout kpis"><strong>3. KPI cards</strong>Health score, predicted temperature, anomaly count and utilization stability.</div>
-          <div class="callout report"><strong>4. Color-coded report</strong>Metric table converts Wolfram JSON into status badges and engineering interpretation.</div>
-          <div class="callout log"><strong>5. Status log</strong>Shows sampling progress, selected engine and report rendering messages.</div>
+        <div class="dashboard-layout">
+          <div class="callout-stack">
+            <div class="callout left controls"><strong>1. Sampling controls</strong>Choose GPU, sample duration, Wolfram Engine vs DLL, then Start/Stop.</div>
+            <div class="callout left table"><strong>2. Live telemetry grid</strong>Raw sample rows: temperature, fan, power, utilization, memory and throttle flags.</div>
+            <div class="callout left report"><strong>4. Color-coded report</strong>Metric table converts Wolfram JSON into status badges and engineering interpretation.</div>
+          </div>
+          <div class="dashboard-center">
+            <img class="dashboard-shot" src="assets/qt-dashboard.png" alt="Qt dashboard screenshot with Wolfram Engine calculation report" />
+          </div>
+          <div class="callout-stack">
+            <div class="callout right kpis"><strong>3. KPI cards</strong>Health score, predicted temperature, anomaly count and utilization stability.</div>
+            <div class="callout right log"><strong>5. Status log</strong>Shows sampling progress, selected engine and report rendering messages.</div>
+          </div>
         </div>
       </div>
     </section>
