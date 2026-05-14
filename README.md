@@ -76,3 +76,4 @@ The telemetry provider is safe on machines without NVML/NVIDIA hardware. It expo
 - `notebooks/GpuHealthReference.wl` is the Wolfram Language calculation source.
 - `notebooks/GpuHealthReferenceRunner.wls` is the WolframScript command-line bridge used by the Qt app.
 - `src/GpuAnalysisDll` demonstrates the later native C++ deployment path.
+- `docs/presentation/wolfram-engine-gpu-demo-presentation.html` is a customer-facing presentation explaining the download/install/licensing/demo flow.
