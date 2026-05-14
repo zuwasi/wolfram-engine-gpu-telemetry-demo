@@ -73,6 +73,32 @@ AnalysisResult ErrorResult(const std::string& message)
     return result;
 }
 
+std::filesystem::path ExecutableDirectory()
+{
+#ifdef _WIN32
+    char path[MAX_PATH] = {};
+    const DWORD length = GetModuleFileNameA(nullptr, path, MAX_PATH);
+    if (length > 0 && length < MAX_PATH) return std::filesystem::path(path).parent_path();
+#endif
+    return std::filesystem::current_path();
+}
+
+std::filesystem::path FindWolframRunner()
+{
+    const auto exeDir = ExecutableDirectory();
+    const std::filesystem::path candidates[] = {
+        exeDir / "notebooks" / "GpuHealthReferenceRunner.wls",
+        exeDir.parent_path() / "notebooks" / "GpuHealthReferenceRunner.wls",
+        std::filesystem::path(GPU_DEMO_SOURCE_DIR) / "notebooks" / "GpuHealthReferenceRunner.wls"
+    };
+
+    for (const auto& candidate : candidates) {
+        if (std::filesystem::exists(candidate)) return candidate;
+    }
+
+    return candidates[0];
+}
+
 int RunHiddenCommand(const std::string& command)
 {
 #ifdef _WIN32
@@ -102,8 +128,7 @@ int RunHiddenCommand(const std::string& command)
 
 AnalysisResult MathematicaAnalysisEngine::Analyze(const std::vector<GpuTelemetrySample>& samples)
 {
-    const auto projectDir = std::filesystem::path(GPU_DEMO_SOURCE_DIR);
-    const auto runner = projectDir / "notebooks" / "GpuHealthReferenceRunner.wls";
+    const auto runner = FindWolframRunner();
     if (!std::filesystem::exists(runner)) {
         return ErrorResult("Wolfram Engine runner not found: " + runner.string());
     }
