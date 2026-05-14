@@ -129,13 +129,13 @@
       <div class="slide-inner">
         <div class="kicker">Customer-ready demo package</div>
         <h1>Wolfram Engine GPU Telemetry Demo</h1>
-        <p class="lead">A native C++/Qt dashboard that uses Wolfram Engine locally as the first calculation engine, then demonstrates a native C++ DLL path for deployment.</p>
+        <p class="lead">A native C++/Qt dashboard that uses Wolfram Engine locally as the calculation engine for GPU telemetry health analysis.</p>
         <div class="brand-row">
           <img class="brand-img" src="assets/esl-logo.jpg" alt="ESL Engineering Software Lab logo" />
           <img class="brand-img" src="assets/wolfram-homepage.png" alt="Wolfram homepage screenshot" />
         </div>
       </div>
-      <div class="footer-note">Release: wolfram-engine-gpu-telemetry-demo v0.1.0 • MIT demo</div>
+      <div class="footer-note">Release: wolfram-engine-gpu-telemetry-demo v0.1.1 • MIT demo</div>
     </section>
 
     <section class="slide">
@@ -143,7 +143,7 @@
         <div class="kicker">What the customer sees</div>
         <h2>From download to local calculation</h2>
         <div class="timeline">
-          <div class="step"><div><strong>Download the release ZIP</strong><span>GitHub release asset: <a href="https://github.com/zuwasi/wolfram-engine-gpu-telemetry-demo/releases/tag/v0.1.0">v0.1.0 customer package</a>.</span></div></div>
+          <div class="step"><div><strong>Download the release ZIP</strong><span>GitHub release asset: <a href="https://github.com/zuwasi/wolfram-engine-gpu-telemetry-demo/releases/tag/v0.1.1">v0.1.1 customer package</a>.</span></div></div>
           <div class="step"><div><strong>Install and activate Wolfram Engine</strong><span>Customer uses their own Wolfram account/license. Wolfram Engine is not redistributed by the demo.</span></div></div>
           <div class="step"><div><strong>Run the included installer script</strong><span><code>powershell -ExecutionPolicy Bypass -File .\install.ps1</code> creates local install and shortcuts.</span></div></div>
           <div class="step"><div><strong>Open the dashboard</strong><span>Default engine: <b>Wolfram Engine Calculation Engine</b>.</span></div></div>
@@ -172,7 +172,7 @@
               <li>Customer can license and run the calculation locally.</li>
               <li>No cloud dependency for the health analysis.</li>
               <li>The algorithm remains readable Wolfram Language.</li>
-              <li>The same logic can later be translated to a native DLL.</li>
+              <li>Advanced mathematics stays in a runtime designed for mathematics.</li>
             </ul>
           </div>
         </div>
@@ -225,8 +225,8 @@
               <li>Explain the Wolfram Engine deployment model to Israeli customers.</li>
               <li>Guide installation, activation and local validation.</li>
               <li>Package engineering demos into customer-consumable releases.</li>
-              <li>Bridge Wolfram algorithms into C++/Qt systems and customer workflows.</li>
-              <li>Support handoff from prototype calculation to production-native DLL path.</li>
+              <li>Bridge Wolfram algorithms into C++/Qt systems and customer workflows without replacing Wolfram's math engine.</li>
+              <li>Support customer teams as formulas, scoring rules and diagnostics evolve.</li>
             </ul>
             <p class="small">This aligns with the customer-facing flow linked from Wolfram global sales for Israel: <a href="https://www.wolfram.com/company/contact/global-sales/?Country=Israel">Wolfram Global Sales Directory</a>.</p>
           </div>
@@ -240,9 +240,8 @@
         <h2>What is shipped to the customer?</h2>
         <div class="grid two">
           <div>
-            <pre class="diagram">WolframEngineGpuTelemetryDemo-0.1.0-win64/
+            <pre class="diagram">WolframEngineGpuTelemetryDemo-0.1.1-win64/
 ├─ GpuTelemetryDashboard.exe
-├─ GpuAnalysisDll.dll
 ├─ Qt6Core.dll / Qt6Gui.dll / Qt6Widgets.dll
 ├─ platforms/qwindows.dll
 ├─ notebooks/
@@ -332,7 +331,7 @@
         <h2>Qt dashboard components</h2>
         <div class="dashboard-layout">
           <div class="callout-stack">
-            <div class="callout left controls"><strong>1. Sampling controls</strong>Choose GPU, sample duration, Wolfram Engine vs DLL, then Start/Stop.</div>
+            <div class="callout left controls"><strong>1. Sampling controls</strong>Choose GPU, sample duration, Wolfram Engine calculation, then Start/Stop.</div>
             <div class="callout left table"><strong>2. Live telemetry grid</strong>Raw sample rows: temperature, fan, power, utilization, memory and throttle flags.</div>
             <div class="callout left report"><strong>4. Color-coded report</strong>Metric table converts Wolfram JSON into status badges and engineering interpretation.</div>
           </div>
@@ -481,23 +480,54 @@ predictedTemperature60s = currentSmoothedTemp + 60·slope</div>
 
     <section class="slide">
       <div class="slide-inner">
-        <div class="kicker">Native DLL comparison</div>
-        <h2>Why also include the C++ DLL?</h2>
+        <div class="kicker">Why not just C++?</div>
+        <h2>Why use Wolfram Engine instead of a C++ DLL/lib?</h2>
         <div class="grid two">
-          <pre class="diagram">First-step customer demo
-
-Qt Dashboard
-  └─▶ Wolfram Engine
-        └─▶ health JSON
-              └─▶ color report</pre>
-          <pre class="diagram">Later deployment path
-
-Qt Dashboard
-  └─▶ GpuAnalysisDll.dll
-        └─▶ health JSON
-              └─▶ color report</pre>
+          <div class="card">
+            <h3>C++ is strong at product integration</h3>
+            <ul>
+              <li>Native UI, hardware APIs, drivers and operating-system integration.</li>
+              <li>Predictable deployment and performance-critical implementation.</li>
+              <li>But advanced math often becomes custom code, third-party libraries and long validation cycles.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Wolfram Engine is a math engine</h3>
+            <ul>
+              <li>Symbolic algebra, calculus, equation solving and optimization.</li>
+              <li>Statistics, time-series analysis, fitting, transforms and anomaly exploration.</li>
+              <li>Rapid formula iteration: change the model, rerun, inspect results, then ship locally.</li>
+            </ul>
+          </div>
         </div>
-        <p class="lead">Wolfram Engine gives fast, transparent algorithm development. The DLL path shows how the same logic can become a native deployment component when Wolfram Engine is not required on the target runtime.</p>
+        <p class="lead">The demo keeps C++ focused on the dashboard/product shell and keeps mathematical reasoning in Wolfram Engine, where symbolic and high-level numeric capabilities already exist.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="kicker">Symbolic + numeric examples</div>
+        <h2>Examples that are natural in Wolfram Engine</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Symbolic model work</h3>
+            <div class="formula">D[100 (1 - a thermal - b power - c memory), thermal]
+
+Solve[predictedTemp == 90, seconds]
+
+FullSimplify[scoreFormula, assumptions]</div>
+            <p>Useful when engineers want to derive sensitivities, solve threshold equations, or explain formulas — not only execute fixed numeric code.</p>
+          </div>
+          <div class="card">
+            <h3>High-level analytics</h3>
+            <div class="formula">TimeSeriesModelFit[tempSeries]
+
+FindAnomalies[powerSeries]
+
+Correlation[utilization, temperature]</div>
+            <p>Wolfram Language lets the demo grow from simple scoring to richer diagnostics without rebuilding a math stack inside C++.</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -505,7 +535,7 @@ Qt Dashboard
       <div class="slide-inner">
         <div class="kicker">Validation</div>
         <h2>How we prove the release works</h2>
-        <div class="grid three">
+        <div class="grid two">
           <div class="card">
             <h3>Engine check</h3>
             <div class="formula">wolframscript.exe -code '$Version'</div>
@@ -516,12 +546,8 @@ Qt Dashboard
             <div class="formula">GpuTelemetryDashboard.exe --wolfram-engine-self-test</div>
             <p>Runs built-in samples through Wolfram Engine and validates analysis JSON.</p>
           </div>
-          <div class="card">
-            <h3>Native path</h3>
-            <div class="formula">GpuTelemetryDashboard.exe --self-test</div>
-            <p>Loads <code>GpuAnalysisDll.dll</code> and verifies native analysis JSON.</p>
-          </div>
         </div>
+        <p class="lead" style="margin-top:24px;"><code>--self-test</code> remains available as a short alias for the same Wolfram Engine validation path.</p>
       </div>
     </section>
 
@@ -544,7 +570,7 @@ Qt Dashboard
             <ul>
               <li>Demonstrate a practical licensing and install path.</li>
               <li>Show how Wolfram Engine embeds into C++ workflows.</li>
-              <li>Present a clean path from algorithm prototype to product delivery.</li>
+              <li>Explain why a math engine is stronger than reimplementing advanced math in a C++ DLL.</li>
               <li>Provide an MIT public demo customers can inspect and extend.</li>
             </ul>
           </div>
@@ -556,7 +582,7 @@ Qt Dashboard
   <button class="nav left hidden" id="prev" aria-label="Previous slide">‹</button>
   <button class="nav right" id="next" aria-label="Next slide">›</button>
   <div class="hint" id="hint">← Swipe to navigate →</div>
-  <div class="counter" id="counter">1 / 17</div>
+  <div class="counter" id="counter">1 / 18</div>
   <div class="progress"><div class="progress-fill" id="progress"></div></div>
 
   <script>

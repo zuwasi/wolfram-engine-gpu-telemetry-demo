@@ -1,9 +1,7 @@
 #include "GpuTelemetryProvider.h"
-#include "JsonTelemetry.h"
 #include "MathematicaBridge.h"
 
 #include <QtCore/QCoreApplication>
-#include <QtCore/QDir>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QTimer>
@@ -25,17 +23,12 @@
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QVBoxLayout>
 
-#include <windows.h>
-
 #include <algorithm>
-#include <array>
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-
-using AnalyzeFn = int (*)(const char*, char*, int);
 
 std::vector<GpuTelemetrySample> BuiltInSamples()
 {
@@ -48,54 +41,6 @@ std::vector<GpuTelemetrySample> BuiltInSamples()
         samples.push_back(sample);
     }
     return samples;
-}
-
-QString DllPath()
-{
-    return QCoreApplication::applicationDirPath() + QDir::separator() + "GpuAnalysisDll.dll";
-}
-
-bool AnalyzeWithDll(const std::vector<GpuTelemetrySample>& samples, QString& output, QString& error)
-{
-    const QString path = DllPath();
-    HMODULE module = LoadLibraryW(reinterpret_cast<LPCWSTR>(path.utf16()));
-    if (!module) {
-        error = "Could not load " + path;
-        return false;
-    }
-    auto fn = reinterpret_cast<AnalyzeFn>(GetProcAddress(module, "AnalyzeGpuTelemetryJson"));
-    if (!fn) {
-        FreeLibrary(module);
-        error = "AnalyzeGpuTelemetryJson export not found";
-        return false;
-    }
-    const std::string input = SamplesToJson(samples);
-    std::array<char, 4096> buffer{};
-    const int rc = fn(input.c_str(), buffer.data(), static_cast<int>(buffer.size()));
-    FreeLibrary(module);
-    if (rc != 0) {
-        error = QString("GpuAnalysisDll returned code %1").arg(rc);
-        return false;
-    }
-    output = QString::fromUtf8(buffer.data());
-    return true;
-}
-
-int RunSelfTest()
-{
-    QString output;
-    QString error;
-    if (!AnalyzeWithDll(BuiltInSamples(), output, error)) {
-        std::cerr << "SELF-TEST FAILED: " << error.toStdString() << "\n";
-        return 1;
-    }
-    const auto doc = QJsonDocument::fromJson(output.toUtf8());
-    if (!doc.isObject() || !doc.object().contains("healthScore")) {
-        std::cerr << "SELF-TEST FAILED: invalid analysis JSON\n";
-        return 1;
-    }
-    std::cout << "SELF-TEST OK: " << output.toStdString() << "\n";
-    return 0;
 }
 
 int RunWolframEngineSelfTest()
@@ -321,7 +266,7 @@ class DashboardWindow final : public QMainWindow
 public:
     DashboardWindow()
     {
-        setWindowTitle("GPU Telemetry Dashboard - Wolfram Engine to Native C++ Demo");
+        setWindowTitle("GPU Telemetry Dashboard - Wolfram Engine Demo");
         resize(1100, 720);
         setMinimumSize(900, 560);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -341,7 +286,7 @@ public:
         durationSpin_->setSingleStep(5);
         durationSpin_->setValue(30);
         engineCombo_ = new QComboBox(controls);
-        engineCombo_->addItems({"Wolfram Engine Calculation Engine", "Native C++ DLL", "Mock Engine"});
+        engineCombo_->addItems({"Wolfram Engine Calculation Engine", "Mock Engine"});
         startButton_ = new QPushButton("Start", controls);
         stopButton_ = new QPushButton("Stop", controls);
         stopButton_->setEnabled(false);
@@ -389,7 +334,7 @@ public:
         connect(startButton_, &QPushButton::clicked, this, [this] { StartSampling(); });
         connect(stopButton_, &QPushButton::clicked, this, [this] { StopSampling(false); });
         connect(&timer_, &QTimer::timeout, this, [this] { CollectSample(); });
-        log_->appendPlainText("Ready. First usage is Wolfram Engine as the calculation engine via wolframscript. Native C++ DLL is the later deployment engine.");
+        log_->appendPlainText("Ready. This demo uses Wolfram Engine as the local calculation engine via wolframscript.");
     }
 
 private:
@@ -452,13 +397,7 @@ private:
             return;
         }
         QString json;
-        if (engineCombo_->currentText() == "Native C++ DLL") {
-            QString error;
-            if (!AnalyzeWithDll(samples_, json, error)) {
-                log_->appendPlainText("Native DLL analysis failed: " + error);
-                return;
-            }
-        } else if (engineCombo_->currentText() == "Wolfram Engine Calculation Engine") {
+        if (engineCombo_->currentText() == "Wolfram Engine Calculation Engine") {
             auto result = MathematicaAnalysisEngine{}.Analyze(samples_);
             json = QString::fromStdString(result.rawJson);
         } else {
@@ -490,8 +429,8 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     if (QCoreApplication::arguments().contains("--wolfram-engine-self-test") ||
+        QCoreApplication::arguments().contains("--self-test") ||
         QCoreApplication::arguments().contains("--mathematica-self-test")) return RunWolframEngineSelfTest();
-    if (QCoreApplication::arguments().contains("--self-test")) return RunSelfTest();
     DashboardWindow window;
     window.show();
     return app.exec();

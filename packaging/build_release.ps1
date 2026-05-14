@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = 'Release',
     [string]$Preset = 'mingw-qt-release',
-    [string]$Version = '0.1.0'
+    [string]$Version = '0.1.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -23,7 +23,6 @@ New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
 
 $binDir = Join-Path $buildDir 'bin'
 Copy-Item (Join-Path $binDir 'GpuTelemetryDashboard.exe') $packageDir -Force
-Copy-Item (Join-Path $binDir 'GpuAnalysisDll.dll') $packageDir -Force
 Copy-Item (Join-Path $projectDir 'LICENSE') $packageDir -Force
 Copy-Item (Join-Path $PSScriptRoot 'README_RUNTIME.txt') $packageDir -Force
 Copy-Item (Join-Path $PSScriptRoot 'CUSTOMER_INSTALL_GUIDE.md') $packageDir -Force
@@ -41,7 +40,6 @@ if ($LASTEXITCODE -eq 0) {
 } else {
     Write-Warning 'wolframscript.exe not available; skipping Wolfram Engine package self-test.'
 }
-& .\GpuTelemetryDashboard.exe --self-test
 Pop-Location
 
 Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
