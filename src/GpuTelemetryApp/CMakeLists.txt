@@ -1,0 +1,6 @@
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+add_executable(GpuTelemetryDashboard WIN32 main.cpp)
+target_link_libraries(GpuTelemetryDashboard PRIVATE Qt6::Widgets GpuTelemetryCore MathematicaBridge)
+target_include_directories(GpuTelemetryDashboard PRIVATE ${CMAKE_SOURCE_DIR}/src/GpuAnalysisDll)
+target_compile_definitions(GpuTelemetryDashboard PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)

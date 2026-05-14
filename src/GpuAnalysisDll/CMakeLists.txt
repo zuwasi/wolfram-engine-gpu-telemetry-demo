@@ -1,0 +1,4 @@
+add_library(GpuAnalysisDll SHARED GpuAnalysisDll.cpp)
+target_link_libraries(GpuAnalysisDll PRIVATE GpuTelemetryCore)
+target_compile_definitions(GpuAnalysisDll PRIVATE GPU_ANALYSIS_DLL_EXPORTS NOMINMAX WIN32_LEAN_AND_MEAN)
+set_target_properties(GpuAnalysisDll PROPERTIES OUTPUT_NAME GpuAnalysisDll PREFIX "")

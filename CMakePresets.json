@@ -1,0 +1,35 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "mingw-qt-debug",
+      "displayName": "MinGW Qt Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/mingw-qt-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.8.3/mingw_64"
+      },
+      "environment": {
+        "PATH": "C:/Qt/Tools/mingw1310_64/bin;C:/Qt/6.8.3/mingw_64/bin;$penv{PATH}"
+      }
+    },
+    {
+      "name": "mingw-qt-release",
+      "displayName": "MinGW Qt Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/mingw-qt-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.8.3/mingw_64"
+      },
+      "environment": {
+        "PATH": "C:/Qt/Tools/mingw1310_64/bin;C:/Qt/6.8.3/mingw_64/bin;$penv{PATH}"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "mingw-qt-debug", "configurePreset": "mingw-qt-debug" },
+    { "name": "mingw-qt-release", "configurePreset": "mingw-qt-release" }
+  ]
+}

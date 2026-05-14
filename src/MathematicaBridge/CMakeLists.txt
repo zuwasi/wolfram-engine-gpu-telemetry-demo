@@ -1,0 +1,4 @@
+add_library(MathematicaBridge STATIC MathematicaBridge.cpp)
+target_include_directories(MathematicaBridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(MathematicaBridge PUBLIC GpuTelemetryCore)
+target_compile_definitions(MathematicaBridge PRIVATE GPU_DEMO_SOURCE_DIR="${CMAKE_SOURCE_DIR}")

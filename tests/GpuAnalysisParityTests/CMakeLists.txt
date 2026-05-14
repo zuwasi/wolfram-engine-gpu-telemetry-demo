@@ -1,0 +1,4 @@
+add_executable(GpuAnalysisParityTests main.cpp)
+target_link_libraries(GpuAnalysisParityTests PRIVATE GpuAnalysisDll GpuTelemetryCore)
+target_include_directories(GpuAnalysisParityTests PRIVATE ${CMAKE_SOURCE_DIR}/src/GpuAnalysisDll)
+target_compile_definitions(GpuAnalysisParityTests PRIVATE TEST_VECTOR_DIR="${CMAKE_SOURCE_DIR}/tests/TestVectors")
