@@ -295,6 +295,9 @@ public:
         stopButton_ = new QPushButton("Stop", controls);
         stopButton_->setEnabled(false);
         progress_ = new QProgressBar(controls);
+        progress_->setFormat("%p% sampling");
+        statusLabel_ = new QLabel("GPU ready - waiting to sample.", controls);
+        statusLabel_->setStyleSheet("font-weight:700; color:#334155; padding:4px 2px;");
         grid->addWidget(new QLabel("GPU"), 0, 0);
         grid->addWidget(gpuCombo_, 0, 1);
         grid->addWidget(new QLabel("Duration (seconds)"), 0, 2);
@@ -304,6 +307,7 @@ public:
         grid->addWidget(startButton_, 0, 6);
         grid->addWidget(stopButton_, 0, 7);
         grid->addWidget(progress_, 1, 0, 1, 8);
+        grid->addWidget(statusLabel_, 2, 0, 1, 8);
         layout->addWidget(controls);
 
         auto* splitter = new QSplitter(Qt::Vertical, central);
@@ -335,9 +339,11 @@ public:
         setCentralWidget(central);
 
         timer_.setInterval(1000);
+        analysisTimer_.setInterval(250);
         connect(startButton_, &QPushButton::clicked, this, [this] { StartSampling(); });
         connect(stopButton_, &QPushButton::clicked, this, [this] { StopSampling(false); });
         connect(&timer_, &QTimer::timeout, this, [this] { CollectSample(); });
+        connect(&analysisTimer_, &QTimer::timeout, this, [this] { UpdateAnalysisIndicator(); });
         log_->appendPlainText("Ready. This demo uses Wolfram Engine only. Choose the .wls runner path or the .m package path.");
     }
 
@@ -350,6 +356,8 @@ private:
         sampleIndex_ = 0;
         targetSamples_ = durationSpin_->value();
         progress_->setValue(0);
+        progress_->setFormat("%p% sampling");
+        statusLabel_->setText("GPU sampling in progress...");
         startButton_->setEnabled(false);
         stopButton_->setEnabled(true);
         log_->appendPlainText(QString("Sampling %1 seconds...").arg(targetSamples_));
@@ -390,8 +398,22 @@ private:
         };
         for (int column = 0; column < values.size(); ++column) table_->setItem(row, column, new QTableWidgetItem(values[column]));
         ++sampleIndex_;
-        progress_->setValue(static_cast<int>(100.0 * sampleIndex_ / targetSamples_));
+        const int percent = static_cast<int>(100.0 * sampleIndex_ / targetSamples_);
+        progress_->setValue(percent);
+        statusLabel_->setText(QString("GPU sampling %1% - collecting telemetry rows...").arg(percent));
         if (sampleIndex_ >= targetSamples_) StopSampling(true);
+    }
+
+    void UpdateAnalysisIndicator()
+    {
+        static const char* frames[] = {"◐", "◓", "◑", "◒"};
+        spinnerFrame_ = (spinnerFrame_ + 1) % 4;
+        analysisProgress_ = std::min(95, analysisProgress_ + 1);
+        progress_->setValue(analysisProgress_);
+        progress_->setFormat("%p% calculating");
+        statusLabel_->setText(QString("%1 GPU calculation running in Wolfram Engine... %2%")
+            .arg(frames[spinnerFrame_])
+            .arg(analysisProgress_));
     }
 
     void RunAnalysis()
@@ -402,6 +424,12 @@ private:
             return;
         }
         analysisRunning_ = true;
+        analysisProgress_ = 0;
+        spinnerFrame_ = 0;
+        progress_->setValue(0);
+        progress_->setFormat("%p% calculating");
+        statusLabel_->setText("◐ GPU calculation starting in Wolfram Engine... 0%");
+        analysisTimer_.start();
         startButton_->setEnabled(false);
         stopButton_->setEnabled(false);
         log_->appendPlainText("Analysis running in background. Wolfram Engine can take a few seconds to start.");
@@ -426,6 +454,10 @@ private:
     void FinishAnalysis(const QString& engineName, const QString& json)
     {
         analysisRunning_ = false;
+        analysisTimer_.stop();
+        analysisProgress_ = 100;
+        progress_->setValue(100);
+        progress_->setFormat("%p% complete");
         startButton_->setEnabled(true);
         stopButton_->setEnabled(false);
         statusBar()->showMessage("Drag window edges to resize. Drag splitters between panels to resize table/report/log areas.");
@@ -434,8 +466,10 @@ private:
 
         const auto diagnosis = doc.object().value("diagnosis").toString();
         if (diagnosis.contains("failed", Qt::CaseInsensitive)) {
+            statusLabel_->setText("⚠ Wolfram Engine calculation failed - see log/details.");
             log_->appendPlainText("Analysis failed: " + diagnosis);
         } else {
+            statusLabel_->setText("✓ Wolfram Engine calculation complete - report rendered.");
             log_->appendPlainText("Analysis complete. Formatted result dashboard rendered from calculation JSON.");
         }
     }
@@ -447,14 +481,18 @@ private:
     QPushButton* startButton_ = nullptr;
     QPushButton* stopButton_ = nullptr;
     QProgressBar* progress_ = nullptr;
+    QLabel* statusLabel_ = nullptr;
     QTableWidget* table_ = nullptr;
     QTextEdit* analysis_ = nullptr;
     QPlainTextEdit* log_ = nullptr;
     QTimer timer_;
+    QTimer analysisTimer_;
     std::vector<GpuTelemetrySample> samples_;
     int sampleIndex_ = 0;
     int targetSamples_ = 30;
     bool analysisRunning_ = false;
+    int analysisProgress_ = 0;
+    int spinnerFrame_ = 0;
 };
 
 int main(int argc, char* argv[])
