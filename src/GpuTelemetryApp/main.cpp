@@ -46,9 +46,9 @@ std::vector<GpuTelemetrySample> BuiltInSamples()
     return samples;
 }
 
-int RunWolframEngineSelfTest()
+int RunWolframEngineSelfTest(WolframCalculationMode mode = WolframCalculationMode::ScriptRunner)
 {
-    const auto result = MathematicaAnalysisEngine{}.Analyze(BuiltInSamples());
+    const auto result = MathematicaAnalysisEngine{mode}.Analyze(BuiltInSamples());
     const auto doc = QJsonDocument::fromJson(QString::fromStdString(result.rawJson).toUtf8());
     if (!doc.isObject() || !doc.object().contains("healthScore")) {
         std::cerr << "WOLFRAM ENGINE SELF-TEST FAILED: invalid analysis JSON\n"
@@ -288,8 +288,9 @@ public:
         durationSpin_->setRange(5, 60);
         durationSpin_->setSingleStep(5);
         durationSpin_->setValue(30);
-        engineCombo_ = new QComboBox(controls);
-        engineCombo_->addItems({"Wolfram Engine Calculation Engine", "Mock Engine"});
+        sourceCombo_ = new QComboBox(controls);
+        sourceCombo_->addItem("Wolfram .wls runner using .wl source", static_cast<int>(WolframCalculationMode::ScriptRunner));
+        sourceCombo_->addItem("Wolfram .m package API", static_cast<int>(WolframCalculationMode::PackageFile));
         startButton_ = new QPushButton("Start", controls);
         stopButton_ = new QPushButton("Stop", controls);
         stopButton_->setEnabled(false);
@@ -298,8 +299,8 @@ public:
         grid->addWidget(gpuCombo_, 0, 1);
         grid->addWidget(new QLabel("Duration (seconds)"), 0, 2);
         grid->addWidget(durationSpin_, 0, 3);
-        grid->addWidget(new QLabel("Engine"), 0, 4);
-        grid->addWidget(engineCombo_, 0, 5);
+        grid->addWidget(new QLabel("Wolfram file"), 0, 4);
+        grid->addWidget(sourceCombo_, 0, 5);
         grid->addWidget(startButton_, 0, 6);
         grid->addWidget(stopButton_, 0, 7);
         grid->addWidget(progress_, 1, 0, 1, 8);
@@ -337,7 +338,7 @@ public:
         connect(startButton_, &QPushButton::clicked, this, [this] { StartSampling(); });
         connect(stopButton_, &QPushButton::clicked, this, [this] { StopSampling(false); });
         connect(&timer_, &QTimer::timeout, this, [this] { CollectSample(); });
-        log_->appendPlainText("Ready. This demo uses Wolfram Engine as the local calculation engine via wolframscript.");
+        log_->appendPlainText("Ready. This demo uses Wolfram Engine only. Choose the .wls runner path or the .m package path.");
     }
 
 private:
@@ -407,17 +408,12 @@ private:
         statusBar()->showMessage("Running Wolfram Engine analysis in background...");
 
         const auto samples = samples_;
-        const QString engineName = engineCombo_->currentText();
+        const QString engineName = sourceCombo_->currentText();
+        const auto mode = static_cast<WolframCalculationMode>(sourceCombo_->currentData().toInt());
         QPointer<DashboardWindow> self(this);
-        std::thread([self, samples, engineName] {
-            QString json;
-            if (engineName == "Wolfram Engine Calculation Engine") {
-                auto result = MathematicaAnalysisEngine{}.Analyze(samples);
-                json = QString::fromStdString(result.rawJson);
-            } else {
-                auto result = MockAnalysisEngine{}.Analyze(samples);
-                json = QString::fromStdString(result.rawJson);
-            }
+        std::thread([self, samples, engineName, mode] {
+            const auto result = MathematicaAnalysisEngine{mode}.Analyze(samples);
+            const QString json = QString::fromStdString(result.rawJson);
 
             if (!self) return;
             QMetaObject::invokeMethod(self, [self, engineName, json] {
@@ -447,7 +443,7 @@ private:
     GpuTelemetryProvider provider_;
     QComboBox* gpuCombo_ = nullptr;
     QSpinBox* durationSpin_ = nullptr;
-    QComboBox* engineCombo_ = nullptr;
+    QComboBox* sourceCombo_ = nullptr;
     QPushButton* startButton_ = nullptr;
     QPushButton* stopButton_ = nullptr;
     QProgressBar* progress_ = nullptr;
@@ -464,6 +460,9 @@ private:
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+    if (QCoreApplication::arguments().contains("--wolfram-package-self-test")) {
+        return RunWolframEngineSelfTest(WolframCalculationMode::PackageFile);
+    }
     if (QCoreApplication::arguments().contains("--wolfram-engine-self-test") ||
         QCoreApplication::arguments().contains("--self-test") ||
         QCoreApplication::arguments().contains("--mathematica-self-test")) return RunWolframEngineSelfTest();

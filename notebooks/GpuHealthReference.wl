@@ -1,5 +1,5 @@
 (* GPU Health Algorithm - Wolfram Language source
-   This is the Wolfram Engine calculation source for the first demo step and the native C++ translation. *)
+   This is the plain Wolfram Language calculation source used by the .wls runner. *)
 
 ClearAll[clamp, mean, variance, medianAbsoluteDeviation, robustZScore,
   exponentialSmooth, pearsonCorrelation, regressionSlope, analyzeGpuTelemetry];

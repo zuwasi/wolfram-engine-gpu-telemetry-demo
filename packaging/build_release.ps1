@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = 'Release',
     [string]$Preset = 'mingw-qt-release',
-    [string]$Version = '0.1.3'
+    [string]$Version = '0.1.4'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -37,6 +37,7 @@ $wolframCheck = & wolframscript.exe -code '$Version' 2>$null
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Wolfram Engine available for local verification: $wolframCheck"
     & .\GpuTelemetryDashboard.exe --wolfram-engine-self-test
+    & .\GpuTelemetryDashboard.exe --wolfram-package-self-test
 } else {
     Write-Warning 'wolframscript.exe not available; skipping Wolfram Engine package self-test.'
 }

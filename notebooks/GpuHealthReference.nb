@@ -1,6 +1,6 @@
 Notebook[{
   Cell["GPU Health Reference Algorithm", "Title"],
-  Cell["This notebook accompanies GpuHealthReference.wl. The .wl file is the source used for C++ translation and parity testing.", "Text"],
+  Cell["This notebook accompanies GpuHealthReference.wl. The .wl file is the plain Wolfram Language calculation source used by the .wls runner.", "Text"],
   Cell["Algorithm stages: preprocessing, exponential smoothing, thermal regression, power instability, utilization correlation, memory pressure, robust anomaly detection, throttle risk, and composite score.", "Text"],
   Cell["Open and evaluate GpuHealthReference.wl to run analyzeGpuTelemetry[samples].", "Text"]
 }]

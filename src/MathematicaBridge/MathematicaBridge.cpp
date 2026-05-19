@@ -1,6 +1,5 @@
 #include "MathematicaBridge.h"
 
-#include "GpuHealthAnalyzer.h"
 #include "JsonTelemetry.h"
 
 #include <chrono>
@@ -83,13 +82,16 @@ std::filesystem::path ExecutableDirectory()
     return std::filesystem::current_path();
 }
 
-std::filesystem::path FindWolframRunner()
+std::filesystem::path FindWolframRunner(WolframCalculationMode mode)
 {
     const auto exeDir = ExecutableDirectory();
+    const char* runnerName = mode == WolframCalculationMode::PackageFile
+        ? "GpuHealthPackageRunner.wls"
+        : "GpuHealthReferenceRunner.wls";
     const std::filesystem::path candidates[] = {
-        exeDir / "notebooks" / "GpuHealthReferenceRunner.wls",
-        exeDir.parent_path() / "notebooks" / "GpuHealthReferenceRunner.wls",
-        std::filesystem::path(GPU_DEMO_SOURCE_DIR) / "notebooks" / "GpuHealthReferenceRunner.wls"
+        exeDir / "notebooks" / runnerName,
+        exeDir.parent_path() / "notebooks" / runnerName,
+        std::filesystem::path(GPU_DEMO_SOURCE_DIR) / "notebooks" / runnerName
     };
 
     for (const auto& candidate : candidates) {
@@ -133,9 +135,14 @@ int RunHiddenCommand(const std::string& command)
 }
 }
 
+MathematicaAnalysisEngine::MathematicaAnalysisEngine(WolframCalculationMode mode)
+    : mode_(mode)
+{
+}
+
 AnalysisResult MathematicaAnalysisEngine::Analyze(const std::vector<GpuTelemetrySample>& samples)
 {
-    const auto runner = FindWolframRunner();
+    const auto runner = FindWolframRunner(mode_);
     if (!std::filesystem::exists(runner)) {
         return ErrorResult("Wolfram Engine runner not found: " + runner.string());
     }
@@ -167,13 +174,5 @@ AnalysisResult MathematicaAnalysisEngine::Analyze(const std::vector<GpuTelemetry
     IntField(json, "anomalyCount", result.anomalyCount);
     result.diagnosis = "Wolfram Engine calculation completed.";
     result.rawJson = json;
-    return result;
-}
-
-AnalysisResult MockAnalysisEngine::Analyze(const std::vector<GpuTelemetrySample>& samples)
-{
-    auto result = GpuHealthAnalyzer{}.Analyze(samples);
-    result.diagnosis += " Mock engine.";
-    result.rawJson = AnalysisResultToJson(result);
     return result;
 }

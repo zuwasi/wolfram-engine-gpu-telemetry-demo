@@ -10,7 +10,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 add_subdirectory(src/GpuTelemetryCore)
-add_subdirectory(src/GpuAnalysisDll)
 add_subdirectory(src/MathematicaBridge)
 add_subdirectory(src/GpuTelemetryApp)
-add_subdirectory(tests/GpuAnalysisParityTests)
