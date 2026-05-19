@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = 'Release',
     [string]$Preset = 'mingw-qt-release',
-    [string]$Version = '0.1.1'
+    [string]$Version = '0.1.2'
 )
 
 $ErrorActionPreference = 'Stop'

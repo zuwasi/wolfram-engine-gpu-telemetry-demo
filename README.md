@@ -31,6 +31,7 @@ MIT. See [LICENSE](LICENSE).
 - `src/GpuTelemetryApp` - Qt 6 Widgets dashboard with Wolfram Engine self-test mode.
 - `src/MathematicaBridge` - WolframScript bridge used by the Wolfram Engine calculation step.
 - `notebooks/GpuHealthReference.wl` - readable Wolfram Language calculation algorithm.
+- `notebooks/GpuHealthPackageExample.m` - traditional Wolfram package-file example with symbolic helper APIs.
 - `notebooks/GpuHealthReferenceRunner.wls` - command-line runner that imports telemetry JSON and exports Wolfram Engine calculation JSON.
 - `tests/TestVectors` - synthetic sample window and expected output.
 
@@ -73,5 +74,6 @@ The telemetry provider is safe on machines without NVML/NVIDIA hardware. It expo
 
 - The current telemetry provider uses deterministic synthetic samples so the demo works on machines without NVIDIA/NVML.
 - `notebooks/GpuHealthReference.wl` is the Wolfram Language calculation source.
+- `notebooks/GpuHealthPackageExample.m` shows the traditional `.m` package format for reusable symbolic helpers such as score sensitivities and threshold solving.
 - `notebooks/GpuHealthReferenceRunner.wls` is the WolframScript command-line bridge used by the Qt app.
 - `docs/presentation/wolfram-engine-gpu-demo-presentation.html` is a customer-facing presentation explaining the download/install/licensing/demo flow.
