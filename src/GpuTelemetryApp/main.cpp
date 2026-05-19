@@ -3,7 +3,9 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QJsonDocument>
+#include <QtCore/QMetaObject>
 #include <QtCore/QJsonObject>
+#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
@@ -28,6 +30,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 std::vector<GpuTelemetrySample> BuiltInSamples()
@@ -392,21 +395,53 @@ private:
 
     void RunAnalysis()
     {
+        if (analysisRunning_) return;
         if (samples_.size() < 5) {
             log_->appendPlainText("Analysis skipped: fewer than 5 samples.");
             return;
         }
-        QString json;
-        if (engineCombo_->currentText() == "Wolfram Engine Calculation Engine") {
-            auto result = MathematicaAnalysisEngine{}.Analyze(samples_);
-            json = QString::fromStdString(result.rawJson);
-        } else {
-            auto result = MockAnalysisEngine{}.Analyze(samples_);
-            json = QString::fromStdString(result.rawJson);
-        }
+        analysisRunning_ = true;
+        startButton_->setEnabled(false);
+        stopButton_->setEnabled(false);
+        log_->appendPlainText("Analysis running in background. Wolfram Engine can take a few seconds to start.");
+        statusBar()->showMessage("Running Wolfram Engine analysis in background...");
+
+        const auto samples = samples_;
+        const QString engineName = engineCombo_->currentText();
+        QPointer<DashboardWindow> self(this);
+        std::thread([self, samples, engineName] {
+            QString json;
+            if (engineName == "Wolfram Engine Calculation Engine") {
+                auto result = MathematicaAnalysisEngine{}.Analyze(samples);
+                json = QString::fromStdString(result.rawJson);
+            } else {
+                auto result = MockAnalysisEngine{}.Analyze(samples);
+                json = QString::fromStdString(result.rawJson);
+            }
+
+            if (!self) return;
+            QMetaObject::invokeMethod(self, [self, engineName, json] {
+                if (!self) return;
+                self->FinishAnalysis(engineName, json);
+            }, Qt::QueuedConnection);
+        }).detach();
+    }
+
+    void FinishAnalysis(const QString& engineName, const QString& json)
+    {
+        analysisRunning_ = false;
+        startButton_->setEnabled(true);
+        stopButton_->setEnabled(false);
+        statusBar()->showMessage("Drag window edges to resize. Drag splitters between panels to resize table/report/log areas.");
         const auto doc = QJsonDocument::fromJson(json.toUtf8());
-        analysis_->setHtml(FormatAnalysisHtml(doc, engineCombo_->currentText(), json));
-        log_->appendPlainText("Analysis complete. Formatted result dashboard rendered from calculation JSON.");
+        analysis_->setHtml(FormatAnalysisHtml(doc, engineName, json));
+
+        const auto diagnosis = doc.object().value("diagnosis").toString();
+        if (diagnosis.contains("failed", Qt::CaseInsensitive)) {
+            log_->appendPlainText("Analysis failed: " + diagnosis);
+        } else {
+            log_->appendPlainText("Analysis complete. Formatted result dashboard rendered from calculation JSON.");
+        }
     }
 
     GpuTelemetryProvider provider_;
@@ -423,6 +458,7 @@ private:
     std::vector<GpuTelemetrySample> samples_;
     int sampleIndex_ = 0;
     int targetSamples_ = 30;
+    bool analysisRunning_ = false;
 };
 
 int main(int argc, char* argv[])

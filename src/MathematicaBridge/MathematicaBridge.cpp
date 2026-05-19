@@ -114,7 +114,14 @@ int RunHiddenCommand(const std::string& command)
         return static_cast<int>(GetLastError());
     }
 
-    WaitForSingleObject(processInfo.hProcess, INFINITE);
+    constexpr DWORD timeoutMs = 120000;
+    const DWORD waitResult = WaitForSingleObject(processInfo.hProcess, timeoutMs);
+    if (waitResult == WAIT_TIMEOUT) {
+        TerminateProcess(processInfo.hProcess, WAIT_TIMEOUT);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return static_cast<int>(WAIT_TIMEOUT);
+    }
     DWORD exitCode = 1;
     GetExitCodeProcess(processInfo.hProcess, &exitCode);
     CloseHandle(processInfo.hThread);
